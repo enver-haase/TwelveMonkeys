@@ -33,6 +33,7 @@ package com.twelvemonkeys.io.enc;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
 /**
@@ -78,7 +79,7 @@ public final class DecoderStream extends FilterInputStream {
 
         decoder = pDecoder;
         buffer = ByteBuffer.allocate(pBufferSize);
-        buffer.flip();
+        ((Buffer)buffer).flip();
     }
 
     public int available() throws IOException {
@@ -175,7 +176,7 @@ public final class DecoderStream extends FilterInputStream {
      * @throws IOException if an I/O error occurs
      */
     protected int fill() throws IOException {
-        buffer.clear();
+        ((Buffer)buffer).clear();
         int read = decoder.decode(in, buffer);
 
         // TODO: Enforce this in test case, leave here to aid debugging
@@ -188,7 +189,7 @@ public final class DecoderStream extends FilterInputStream {
             );
         }
 
-        buffer.flip();
+        ((Buffer)buffer).flip();
 
         if (read == 0) {
             return -1;
