@@ -46,9 +46,7 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * ImageReader for ZSoft PC Paintbrush (PCX) format.
- *
- * @see <a href="http://www.drdobbs.com/pcx-graphics/184402396">PCX Graphics</a>
+ * ImageReader for Bally/Williams Pinball 2000 i64
  */
 public final class I64ImageReader extends ImageReaderBase {
 
@@ -99,6 +97,7 @@ public final class I64ImageReader extends ImageReaderBase {
         if (imageIndex != 0) {
             throw new IndexOutOfBoundsException("Only one image expected.");
         }
+        processImageStarted(imageIndex);
 
         BufferedImage bufferedImage = new BufferedImage(getWidth(imageIndex), getHeight(imageIndex), BUFFERED_IMAGE_TYPE_RGB555);
 
