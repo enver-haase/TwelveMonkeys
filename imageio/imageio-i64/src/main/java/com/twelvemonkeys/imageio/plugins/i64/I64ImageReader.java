@@ -137,6 +137,7 @@ public final class I64ImageReader extends ImageReaderBase {
 
         int countFlips=0;
         for (int line = 0; line < getHeight(imageIndex); line++) {
+            processImageProgress(100f * line / getHeight(imageIndex));
             if (DEBUG){
                 System.err.println("Line: "+line);
             }
