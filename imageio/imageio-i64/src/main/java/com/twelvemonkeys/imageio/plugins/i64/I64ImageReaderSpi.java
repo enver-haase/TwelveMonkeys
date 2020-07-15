@@ -46,7 +46,8 @@ public final class I64ImageReaderSpi extends ImageReaderSpiBase {
         super(new I64ProviderInfo());
     }
 
-    @Override public boolean canDecodeInput(final Object source) throws IOException {
+    @Override
+    public boolean canDecodeInput(final Object source) throws IOException {
         if (!(source instanceof ImageInputStream)) {
             return false;
         }
@@ -54,27 +55,70 @@ public final class I64ImageReaderSpi extends ImageReaderSpiBase {
         ImageInputStream stream = (ImageInputStream) source;
 
         stream.mark();
-
         try {
-            byte magic = stream.readByte();
-
-            switch (magic) {
-                case 0x00:
-                    return true; // TODO
-                default:
-                    return true;
+            for (int i = 0; i < 64; i++) { // read color map
+                stream.readByte();
+                stream.readByte();
             }
-        }
-        finally {
+            for (int i = 0; i < 64; i++) { // read color map
+                stream.readByte();
+                stream.readByte();
+                stream.readByte();
+                stream.readByte();
+            }
+            int lo = stream.read();
+            int hi = stream.read();
+            int dictLength = hi * 256 + lo;
+            for (int i = 0; i < dictLength - 2; i++) {
+                stream.readByte();
+            }
+            // we're now at the beginning of the compressed dict/rle data
+            // The encoding is like this:
+            //  00cccccc        Single pixel, colour of index C (0-63)
+            //  01cccccc        Two pixels, colour of index C (0-63)
+            //  10nnnnnn        Two pixels, dictionary lookup entry N (0-63)
+            //  11cccccc        Run of pixels, colour of index C (0-63)
+            //  rrrrrrrr        Run length is R+3 (thus 3 to 258)
+            int countPixels = 0;
+            do {
+                int value = stream.read();
+                int opcode = value & 192;
+                switch (opcode) {
+                    case 0:
+                        countPixels++;
+                        break;
+                    case 64:
+                    case 128:
+                        countPixels += 2;
+                        break;
+                    case 192:
+                        int run = stream.read();
+                        countPixels += run+3;
+                        break;
+                    default:
+                        throw new IOException("Internal error.");
+                }
+            } while (countPixels < 100 * 50) ;
+            if (countPixels != 100 * 50){
+                return false;
+            }
+            if (stream.read() != -1){
+                return false;
+            }
+
+            return true;
+        } finally {
             stream.reset();
         }
     }
 
-    @Override public ImageReader createReaderInstance(final Object extension) throws IOException {
+    @Override
+    public ImageReader createReaderInstance(final Object extension) throws IOException {
         return new com.twelvemonkeys.imageio.plugins.i64.I64ImageReader(this);
     }
 
-    @Override public String getDescription(final Locale locale) {
+    @Override
+    public String getDescription(final Locale locale) {
         return "Bally/Williams Pinball 2000 i64 image reader";
     }
 }
