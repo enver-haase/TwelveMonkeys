@@ -53,8 +53,7 @@ public class I64ImageReaderTest extends ImageReaderAbstractTest<I64ImageReader> 
     protected List<TestData> getTestData() {
         return Arrays.asList(
                 new TestData(getClassLoaderResource("/i64/CircleW.i64"), new Dimension(150, 100)),
-                new TestData(getClassLoaderResource("/i64/pic.i64"), new Dimension(150, 100)),
-                new TestData(getClassLoaderResource("/i64/test.i64"), new Dimension(150, 100))
+                new TestData(getClassLoaderResource("/i64/pic.i64"), new Dimension(150, 100))
         );
     }
 
