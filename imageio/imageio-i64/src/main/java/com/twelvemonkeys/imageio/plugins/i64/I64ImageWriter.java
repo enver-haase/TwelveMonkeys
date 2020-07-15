@@ -77,6 +77,31 @@ public class I64ImageWriter extends ImageWriterBase {
             System.err.println("Writing *.i64 file.");
         }
 
+        // Color table
+        for (int i=0; i<64; i++){
+            imageOutput.writeShort(0); // TODO
+        }
+        // Dictionary (unused here as we don't compress)
+        for (int i=0; i<64; i++){
+            imageOutput.writeShort(0); // 'left' pixel
+            imageOutput.writeShort(0); // 'right' pixel
+        }
+        // Length of double-pixel-fliparound table (we don't use it as we don't compress)
+        imageOutput.writeByte(2); // just the two bytes of ourselves
+        imageOutput.writeByte(0); // TODO: this whole byte-order thing should be understood better
+        // Now writing the image data, always 100 x 50 image size!
+        // The encoding is like this:
+        //  00cccccc        Single pixel, colour of index C (0-63)
+        //  01cccccc        Two pixels, colour of index C (0-63)
+        //  10nnnnnn        Two pixels, dictionary lookup entry N (0-63)
+        //  11cccccc        Run of pixels, colour of index C (0-63)
+        //  rrrrrrrr        Run length is R+3 (thus 3 to 258)
+        for (int line=0; line<50; line++){
+            for (int col=0; col<100; col++){
+                imageOutput.writeByte(0x00); // single pixel, color palette entry 0. TODO
+            }
+        }
+
         processImageComplete();
     }
 }
