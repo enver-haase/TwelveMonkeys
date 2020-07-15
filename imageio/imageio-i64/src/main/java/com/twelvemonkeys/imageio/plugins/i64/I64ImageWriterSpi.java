@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Enver Haase
+ * Copyright (c) 2008, Harald Kuhr
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,35 +30,38 @@
 
 package com.twelvemonkeys.imageio.plugins.i64;
 
-import com.twelvemonkeys.imageio.spi.ReaderWriterProviderInfo;
+import com.twelvemonkeys.imageio.spi.ImageWriterSpiBase;
+import com.twelvemonkeys.imageio.spi.ProviderInfo;
+
+import javax.imageio.ImageTypeSpecifier;
+import javax.imageio.ImageWriter;
+import java.io.IOException;
+import java.util.Locale;
 
 /**
- * PCXProviderInfo.
+ * IFFImageWriterSpi
  *
  * @author <a href="mailto:harald.kuhr@gmail.com">Harald Kuhr</a>
- * @author last modified by $Author: harald.kuhr$
- * @version $Id: PCXProviderInfo.java,v 1.0 20/03/15 harald.kuhr Exp$
+ * @version $Id: IFFImageWriterSpi.java,v 1.0 02.mar.2006 19:21:05 haku Exp$
  */
-final class I64ProviderInfo extends ReaderWriterProviderInfo {
-    protected I64ProviderInfo() {
-        super(
-                I64ProviderInfo.class,
-                new String[]{
-                        "i64",
-                        "I64"
-                },
-                new String[]{"i64"},
-                new String[]{
-                        // No official IANA record exists
-                        "image/i64",
-                        "image/x-i64",
-                },
-                "com.twelvemonkeys.imageio.plugins.i64.I64ImageReader",
-                new String[] {"com.twelvemonkeys.imageio.plugins.i64.I64ImageReaderSpi"},
-                "com.twelvemonkeys.imageio.plugins.i64.I64ImageWriter",
-                new String[] {"com.twelvemonkeys.imageio.plugins.i64.I64ImageWriterSpi"},
-                false, null, null, null, null,
-                true, null, null, null, null
-        );
+public class I64ImageWriterSpi extends ImageWriterSpiBase {
+
+    /**
+     * Creates an {@code IFFImageWriterSpi}.
+     */
+    public I64ImageWriterSpi() {
+        super(new I64ProviderInfo());
+    }
+
+    public boolean canEncodeImage(final ImageTypeSpecifier pType) {
+        return true;
+    }
+
+    public ImageWriter createWriterInstance(Object pExtension) throws IOException {
+        return new I64ImageWriter(this);
+    }
+
+    public String getDescription(Locale pLocale) {
+        return "Bally/Williams Pinball 2000 i64 image writer";
     }
 }
