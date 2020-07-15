@@ -102,7 +102,7 @@ public final class I64ImageReader extends ImageReaderBase {
 
         BufferedImage bufferedImage = new BufferedImage(getWidth(imageIndex), getHeight(imageIndex), BUFFERED_IMAGE_TYPE_RGB555);
 
-        int[] colorPalette = new int[64]; // really only 16-bit are used
+        int[] colorPalette = new int[64]; // really only 16-bit are used per int
         for (int i = 0; i < colorPalette.length; i++) {
             colorPalette[i] = read(imageInput) + read(imageInput) * 256;
         }
@@ -120,8 +120,8 @@ public final class I64ImageReader extends ImageReaderBase {
         if (DEBUG) {
             System.err.println("Flip table size is: " + flipTableSize);
         }
-        int[] flipTable = new int[flipTableSize-2];
-        for (int i = 0; i < flipTableSize-2; i++) { // subtract the two size bytes
+        int[] flipTable = new int[flipTableSize-2]; // subtract the two size bytes
+        for (int i = 0; i < flipTable.length; i++) {
             flipTable[i] = read(imageInput);
         }
 
@@ -136,6 +136,7 @@ public final class I64ImageReader extends ImageReaderBase {
 
         int[][] pixels = new int[getHeight(imageIndex)][getWidth(imageIndex)];
 
+        int countFlips=0;
         for (int line = 0; line < getHeight(imageIndex); line++) {
             if (DEBUG){
                 System.err.println("Line: "+line);
@@ -154,16 +155,29 @@ public final class I64ImageReader extends ImageReaderBase {
                         pixels[line][pixelCount++] = colorPalette[value];
                         break;
                     case 128:
-                        // TODO: use flipTable to see if these pixels here need to be flipped around
-                        pixels[line][pixelCount++] = dictionary[value][0];
-                        pixels[line][pixelCount++] = dictionary[value][1];
+                        if (DEBUG){
+                            System.err.println("Flip number "+countFlips);
+                        }
+                        int flipByte = countFlips / 8;
+                        int flipBit = countFlips % 8;
+                        boolean flip = (flipTable[flipByte] & (1 << flipBit)) != 0;
+
+                        if (!flip) {
+                            pixels[line][pixelCount++] = dictionary[value][0];
+                            pixels[line][pixelCount++] = dictionary[value][1];
+                        }
+                        else {
+                            pixels[line][pixelCount++] = dictionary[value][1];
+                            pixels[line][pixelCount++] = dictionary[value][0];
+                        }
+                        countFlips++;
                         break;
                     case 192:
                         int len = read(imageInput);
+                        if (DEBUG){
+                            System.err.println("Run of pixels, number: "+(len+3));
+                        }
                         for (int i = 0; i < len + 3; i++) {
-                            if (DEBUG){
-                                System.err.println("Run of pixels, number: "+(len+3));
-                            }
                             pixels[line][pixelCount++] = colorPalette[value];
                         }
                         break;
@@ -190,9 +204,12 @@ public final class I64ImageReader extends ImageReaderBase {
         WritableRaster raster = dest.getRaster();
         for (int line = 0; line < getHeight(imageIndex); line++) {
             for (int col = 0; col < getWidth(imageIndex); col++) {
-                int red = dest.getColorModel().getRed(source[line][col]);
-                int green = dest.getColorModel().getGreen(source[line][col]);
-                int blue = dest.getColorModel().getBlue(source[line][col]);
+                //int red = dest.getColorModel().getRed(source[line][col]);
+                int red = (source[line][col] & 0x7c00) >> 10;
+                //int green = dest.getColorModel().getGreen(source[line][col]);
+                int green = (source[line][col] & 0x03e0) >> 5;
+                //int blue = dest.getColorModel().getBlue(source[line][col]);
+                int blue = (source[line][col] & 0x001f);
                 raster.setPixel(col, line, new int[]{red, green, blue});
             }
         }
