@@ -30,21 +30,18 @@
 
 package com.twelvemonkeys.imageio.plugins.i64;
 
+import com.twelvemonkeys.image.ImageUtil;
+import com.twelvemonkeys.image.ResampleOp;
 import com.twelvemonkeys.imageio.ImageWriterBase;
-import com.twelvemonkeys.imageio.util.IIOUtil;
-import com.twelvemonkeys.io.FastByteArrayOutputStream;
-import com.twelvemonkeys.io.enc.EncoderStream;
-import com.twelvemonkeys.io.enc.PackBitsEncoder;
+
 
 import javax.imageio.*;
 import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.spi.ImageWriterSpi;
 import java.awt.*;
 import java.awt.image.*;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
+
 import java.io.IOException;
-import java.io.OutputStream;
 
 /**
  * Writer for Bally/Williams Pinball 2000 i64
@@ -76,10 +73,44 @@ public class I64ImageWriter extends ImageWriterBase {
         if (DEBUG){
             System.err.println("Writing *.i64 file.");
         }
+        if (pImage.hasRaster()) {
+            throw new UnsupportedOperationException("Cannot write raster");
+        }
 
-        // Color table
-        for (int i=0; i<64; i++){
-            imageOutput.writeShort(0); // TODO
+        // i64 file format mandates 100x50 images
+        BufferedImage bufferedImage = ImageUtil.toBuffered((Image) pImage.getRenderedImage());
+        Raster raster = pImage.getRenderedImage().getData();
+        if (raster.getWidth() != 100 || raster.getHeight() != 50){
+            BufferedImageOp resampler = new ResampleOp(100, 50, ResampleOp.FILTER_LANCZOS); // A good default filter, see class documentation for more info
+            bufferedImage = resampler.filter(bufferedImage, null);
+        }
+
+        BufferedImage indexedImage = ImageUtil.createIndexed(bufferedImage, 64, Color.BLACK, ImageUtil.DITHER_DIFFUSION);
+        IndexColorModel model = (IndexColorModel) indexedImage.getColorModel();
+
+        final int length = model.getMapSize();
+        if (DEBUG){
+            System.err.println("Number of colors in color map: "+length);
+        }
+
+        // color table
+        for (int i = 0; i < length; i++) {
+            int red = model.getRed(i);
+            red = red >> 3; // only five bits are used
+
+            int green = model.getGreen(i);
+            green = green >> 3; // only five bits are used
+
+            int blue = model.getGreen(i);
+            blue = blue >> 3; // only five bits are used
+
+            int color = (red << 10) | (green << 5) | blue;
+            imageOutput.writeByte(color % 256);
+            imageOutput.writeByte(color / 256);
+        }
+        // Color table padding
+        for (int i=length; i<64; i++){
+            imageOutput.writeShort(0);
         }
         // Dictionary (unused here as we don't compress)
         for (int i=0; i<64; i++){
@@ -96,9 +127,20 @@ public class I64ImageWriter extends ImageWriterBase {
         //  10nnnnnn        Two pixels, dictionary lookup entry N (0-63)
         //  11cccccc        Run of pixels, colour of index C (0-63)
         //  rrrrrrrr        Run length is R+3 (thus 3 to 258)
+        if (DEBUG){
+            System.err.println("Data type in color map buffer: "+indexedImage.getData().getDataBuffer().getDataType());
+            System.err.println("Number of banks: "+indexedImage.getData().getDataBuffer().getNumBanks());
+            System.err.println("Size: "+indexedImage.getData().getDataBuffer().getSize());
+        }
+        if (indexedImage.getData().getDataBuffer().getSize() != 100*50){
+            throw new IOException("Internal error.");
+        }
+
         for (int line=0; line<50; line++){
             for (int col=0; col<100; col++){
-                imageOutput.writeByte(0x00); // single pixel, color palette entry 0. TODO
+                int element = indexedImage.getData().getDataBuffer().getElem(line*100+col);
+                element &= 0x3f; // make absolutely sure the upper two bits are cleared
+                imageOutput.writeByte(element); // single pixel, element is color palette entry
             }
         }
 
