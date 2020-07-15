@@ -31,14 +31,20 @@
 package com.twelvemonkeys.imageio.plugins.i64;
 
 import com.twelvemonkeys.imageio.util.ImageReaderAbstractTest;
+import org.junit.Ignore;
 
+import javax.imageio.ImageReader;
 import javax.imageio.spi.ImageReaderSpi;
 
 import java.awt.*;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 
 /**
@@ -89,4 +95,142 @@ public class I64ImageReaderTest extends ImageReaderAbstractTest<I64ImageReader> 
                 "image/i64", "image/x-i64"
         );
     }
+
+    @Override
+    @Ignore("TODO - Under Development")
+    public void testReRead() throws IOException {
+    }
+
+    @Override
+    @Ignore("I64 supports only one size: 100x50")
+    public void testReadWithSubsampleParamDimensions() {
+    }
+
+    @Override
+    @Ignore("TODO - Under Development")
+    public void testReadWithSubsampleParamPixels() throws IOException {
+    }
+
+    @Override
+    @Ignore("TODO - Under Development")
+    public void testReadWithNewParam() {
+    }
+
+    @Override
+    @Ignore("TODO - Under Development")
+    public void testReadWithDefaultParam() {
+    }
+
+    @Override
+    @Ignore("TODO - Under Development")
+    public void testReadWithSourceRegionParam() {
+    }
+
+    @Override
+    @Ignore("TODO - Under Development")
+    public void testReadWithSourceRegionParamEqualImage() throws IOException {
+    }
+
+    @Override
+    public void testGetWidthNoInput() {
+        ImageReader reader = createReader();
+
+        int width = 0;
+        try {
+            width = reader.getWidth(0);
+        }
+        catch (IllegalStateException ignore) {
+        }
+        catch (IOException e) {
+            fail("Could not read image width: " + e);
+        }
+        assertEquals("Wrong width reported", 100, width);
+        reader.dispose();
+    }
+
+    @Override
+    public void testGetHeightNoInput() {
+        ImageReader reader = createReader();
+
+        int height = 0;
+        try {
+            height = reader.getHeight(0);
+        }
+        catch (IllegalStateException ignore) {
+        }
+        catch (IOException e) {
+            fail("Could not read image height: " + e);
+        }
+        assertEquals("Wrong height reported", 50, height);
+        reader.dispose();
+    }
+
+
+    @Override
+    public void testGetAspectRatioNoInput() {
+        ImageReader reader = createReader();
+
+        float aspectRatio = 0f;
+        try {
+            aspectRatio = reader.getAspectRatio(0);
+        }
+        catch (IllegalStateException ignore) {
+        }
+        catch (IOException e) {
+            fail("Could not read image aspect ratio" + e);
+        }
+        assertEquals("Wrong aspect aspect ratio", 2f, aspectRatio, 0.01f);
+        reader.dispose();
+    }
+
+    @Override
+    @Ignore("TODO - Under Development")
+    public void testReadWithSubsampleAndSourceRegionParam() {
+    }
+
+    @Override
+    @Ignore("TODO - Under Development")
+    public void testReadAsRenderedImageWithDefaultParam() {
+    }
+
+    @Override
+    @Ignore("TODO - Under Development")
+    public void testAbort() {
+    }
+
+    @Override
+    @Ignore("TODO - Under Development")
+    public void testSetDestination() throws IOException {
+    }
+
+    @Override
+    @Ignore("TODO - Under Development")
+    public void testNotBadCaching() throws IOException {
+    }
+
+    @Override
+    @Ignore("TODO - Under Development")
+    public void testSetDestinationRaw() throws IOException {
+    }
+
+    @Override
+    @Ignore("TODO - Under Development")
+    public void testSetDestinationType() throws IOException {
+    }
+
+    @Override
+    @Ignore("TODO - Under Development")
+    public void testSetDestinationIllegal() throws IOException {
+    }
+
+    @Override
+    @Ignore("TODO - Under Development")
+    public void testSetDestinationOffset() throws IOException {
+    }
+
+    @Override
+    @Ignore("TODO - Under Development")
+    public void testSetDestinationTypeIllegal() throws IOException {
+    }
 }
+
